@@ -1,5 +1,6 @@
 const ytdl = require('ytdl-core');
 const ytSearch = require('yt-search');
+const { entersState, VoiceConnectionStatus, joinVoiceChannel } = require('@discordjs/voice');
 
 //Global queue for your bot. Every server will have a key and value pair in this map. { guild.id, queue_constructor{} }
 const queue = new Map();
@@ -59,7 +60,7 @@ module.exports = {
 
 				//Establish a connection and play the song with the vide_player function.
 				try {
-					const connection = await voice_channel.join();
+					const connection = await connectToChannel(voice_channel);
 					queue_constructor.connection = connection;
 					video_player(message.guild, queue_constructor.songs[0]);
 				} catch (err) {
@@ -75,6 +76,21 @@ module.exports = {
 		else if (cmd === 'stop') stop_song(message, server_queue);
 	}
 };
+async function connectToChannel(channel) {
+	const con = joinVoiceChannel({
+		channelId: channel.id,
+		guildId: channel.guild.id,
+		adapterCreator: channel.guild.voiceAdapterCreator
+	});
+
+	try {
+		await entersState(con, VoiceConnectionStatus.Ready, 30e3);
+		return con;
+	} catch (error) {
+		con.destroy();
+		throw error;
+	}
+}
 
 const video_player = async (guild, song) => {
 	const song_queue = queue.get(guild.id);

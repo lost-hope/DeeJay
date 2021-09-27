@@ -1,5 +1,4 @@
 module.exports = (Discord, client, message) => {
-	console.log('m');
 	const prefix = '-';
 
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
